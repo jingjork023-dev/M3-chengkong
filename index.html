@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renal Quiz - Medical Semiology</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;700&display=swap');
+        
+        body { font-family: 'ui-sans-serif', system-ui, 'Kantumruy Pro', sans-serif; }
+
+        .input-blank {
+            border-bottom: 2px solid #3b82f6;
+            background: transparent;
+            outline: none;
+            text-align: center;
+            font-weight: bold;
+            color: #1e40af;
+            width: 140px;
+            margin: 0 4px;
+            transition: all 0.3s ease;
+        }
+        .correct { border-bottom-color: #10b981 !important; color: #059669 !important; background-color: #f0fdf4; }
+        .incorrect { border-bottom-color: #ef4444 !important; color: #dc2626 !important; background-color: #fef2f2; }
+        .ans-reveal { font-size: 0.85rem; color: #059669; font-weight: bold; margin-left: 4px; display: block; margin-top: 2px; }
+        .result-box { display: none; }
+        
+        .option-correct {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            animation: pulse-green 0.4s ease-out;
+        }
+        .option-incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            animation: shake 0.4s ease-in-out;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        .disabled-labels { pointer-events: none; opacity: 0.8; }
+        .disabled-input { pointer-events: none; opacity: 0.7; }
+        
+        .khmer-text { font-family: 'Kantumruy Pro', sans-serif; line-height: 1.6; }
+        
+        .khmer-hidden { display: none; opacity: 0; transition: opacity 0.5s ease; }
+        .khmer-visible { display: block !important; opacity: 1 !important; }
+
+        .redo-btn {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .redo-btn:hover { background-color: #e5e7eb; color: #1f2937; }
+    </style>
+</head>
+<body class="bg-gray-50 py-10 px-4">
+    <div class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
+        <!-- Header -->
+        <div class="bg-blue-700 p-6 text-white text-center">
+            <h1 class="text-3xl font-bold mb-1">Medical Semiology 3</h1>
+            <p class="text-xl font-medium khmer-text">គ្រូឆេងកុង</p>
+        </div>
+
+        <div class="p-8">
+            <!-- Part A -->
+            <div class="flex justify-between items-center border-b-2 border-blue-100 pb-2 mb-6">
+                <h2 class="text-xl font-bold">
+                    Part A: Multiple Choice / <span class="khmer-text">ផ្នែកទី ១៖ សំណួរជ្រើសរើសចម្លើយ</span>
+                </h2>
+                <button onclick="resetAllMCQs()" class="redo-btn text-xs font-bold uppercase tracking-wider bg-blue-50 border-blue-200 hover:bg-blue-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Redo All MCQ
+                </button>
+            </div>
+            <div id="mcq-container" class="space-y-8"></div>
+
+            <!-- Part B Section 1 -->
+            <div class="flex justify-between items-center border-b-2 border-blue-100 pb-2 mb-6 mt-12">
+                <h2 class="text-xl font-bold">
+                    Part B: Polyuria / <span class="khmer-text">ផ្នែកទី ៣៖ បំពេញចន្លោះ (អាការៈនោមច្រើន)</span>
+                </h2>
+                <button onclick="resetAllFIBs('polyuria-context')" class="redo-btn text-xs font-bold uppercase tracking-wider bg-blue-50 border-blue-200 hover:bg-blue-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Redo Polyuria
+                </button>
+            </div>
+            <div id="polyuria-context" class="bg-white p-6 border rounded-xl leading-loose text-gray-700">
+                <div class="bg-blue-50 p-4 rounded-lg mb-4 text-sm font-medium text-blue-800 khmer-text">
+                    Options / ពាក្យត្រូវប្រើ៖ (A)-ADH, (B)-aldosterone, (C)-ទឹកនោមប្រៃ (diabetes insipidus), (D)-ទឹកនោមផ្អែម (diabetes mellitus), (E)-ថ្នាំបញ្ចុះទឹកនោម (diuretic), (F)-ស្ករក្នុងទឹកនោម (glycosuria), (G)-ការបញ្ចេញទឹកនោមតាមបែបអូស្មូស (osmotic diuresis).
+                </div>
+                <p class="mb-2">Polyuria also occurs when the kidneys cannot concentrate urine appropriately. Causes may be:</p>
+                
+                <div class="fib-group mb-6 p-3 rounded-lg transition-colors group relative" data-group="fib-1">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo Row</button>
+                    <p class="mt-4">• Extrarenal: e.g. <span class="inline-block relative"><input type="text" data-ans="E" onblur="checkFIB(this)" class="input-blank" placeholder="1"><span class="ans-reveal hidden"></span></span> drugs;</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 ml-6 mt-1">ក្រៅតម្រងនោម៖ ឧទាហរណ៍ ថ្នាំ (E) បញ្ចុះទឹកនោម (១);</p>
+                </div>
+
+                <div class="fib-group mb-6 p-3 rounded-lg transition-colors group relative" data-group="fib-2-4">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo Row</button>
+                    <p>• Hyperglycemia with <span class="inline-block relative"><input type="text" data-ans="F" onblur="checkFIB(this)" class="input-blank" placeholder="2"><span class="ans-reveal hidden"></span></span> in <span class="inline-block relative"><input type="text" data-ans="D" onblur="checkFIB(this)" class="input-blank" placeholder="3"><span class="ans-reveal hidden"></span></span> causing an <span class="inline-block relative"><input type="text" data-ans="G" onblur="checkFIB(this)" class="input-blank" placeholder="4"><span class="ans-reveal hidden"></span></span>;</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 ml-6 mt-1">ស្ថានភាពជាតិស្ករក្នុងឈាមឡើងខ្ពស់ជាមួយនឹង (F) ស្ករក្នុងទឹកនោម (២) ក្នុងជំងឺ (D) ទឹកនោមផ្អែម (៣) ដែលបណ្តាលឱ្យមាន (G) ការបញ្ចេញទឹកនោមតាមបែបអូស្មូស (៤);</p>
+                </div>
+
+                <div class="fib-group mb-6 p-3 rounded-lg transition-colors group relative" data-group="fib-5-7">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo Row</button>
+                    <p>• Lack of <span class="inline-block relative"><input type="text" data-ans="A" onblur="checkFIB(this)" class="input-blank" placeholder="5"><span class="ans-reveal hidden"></span></span> from the pituitary gland in cranial <span class="inline-block relative"><input type="text" data-ans="C" onblur="checkFIB(this)" class="input-blank" placeholder="6"><span class="ans-reveal hidden"></span></span>, or failure of <span class="inline-block relative"><input type="text" data-ans="B" onblur="checkFIB(this)" class="input-blank" placeholder="7"><span class="ans-reveal hidden"></span></span> secretion by the adrenal gland in Addison's disease.</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 ml-6 mt-1">ការខ្វះសារធាតុ (A) ADH (៥) ពីក្រពេញអ៊ីប៉ូភីស ក្នុងជំងឺ (C) ទឹកនោមប្រៃ (៦) ប្រភេទខួរក្បាល, ឬការបរាជ័យនៃការបញ្ចេញសារធាតុ (B) aldosterone (៧) ដោយក្រពេញលើតម្រងនោម ក្នុងជំងឺ Addison។</p>
+                </div>
+
+                <div class="fib-group p-3 rounded-lg transition-colors group relative" data-group="fib-8-10">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo Row</button>
+                    <p class="mt-4">• Renal causes occur when the kidney tubules fail to reabsorb water appropriately in response to <span class="inline-block relative"><input type="text" data-ans="A" onblur="checkFIB(this)" class="input-blank" placeholder="8"><span class="ans-reveal hidden"></span></span>. This impaired concentrating ability occurs in nephrogenic <span class="inline-block relative"><input type="text" data-ans="C" onblur="checkFIB(this)" class="input-blank" placeholder="9"><span class="ans-reveal hidden"></span></span>, which is usually due to genetic mutation in the tubular <span class="inline-block relative"><input type="text" data-ans="A" onblur="checkFIB(this)" class="input-blank" placeholder="10"><span class="ans-reveal hidden"></span></span> receptor.</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 ml-6 mt-1">មូលហេតុពីតម្រងនោមកើតឡើងនៅពេលដែលបំពង់តម្រងនោមមិនអាចស្រូបទឹកត្រឡប់មកវិញបានត្រឹមត្រូវដើម្បីឆ្លើយតបនឹង (A) ADH (៨)។ សមត្ថភាពធ្វើឱ្យទឹកនោមមានកំហាប់ចុះខ្សោយនេះ កើតឡើងក្នុងជំងឺ (C) ទឹកនោមប្រៃ (៩) ប្រភេទតម្រងនោម ដែលបណ្តាលមកពីការបំប្លែងសេនេទិចនៅក្នុង Receptor នៃ (A) ADH (១០)។</p>
+                </div>
+            </div>
+
+            <!-- Part B Section 2 -->
+            <div class="flex justify-between items-center border-b-2 border-blue-100 pb-2 mb-6 mt-12">
+                <h2 class="text-xl font-bold">
+                    Part B: Kidney Stones / <span class="khmer-text">ផ្នែកទី ៤៖ បំពេញចន្លោះ (គ្រួសក្នុងតម្រងនោម)</span>
+                </h2>
+                <button onclick="resetAllFIBs('stone-context')" class="redo-btn text-xs font-bold uppercase tracking-wider bg-blue-50 border-blue-200 hover:bg-blue-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Redo Stones
+                </button>
+            </div>
+            <div id="stone-context" class="space-y-6 text-gray-700 bg-white p-6 border rounded-xl">
+                <div class="bg-blue-50 p-4 rounded-lg mb-4 text-sm font-medium text-blue-800 khmer-text">
+                    Options / ពាក្យត្រូវប្រើ៖ (A)-កាល់ស្យូម (calcium), (B)-កាល់ស្យូមក្នុងឈាម (calcemia), (C)-ស៊ីត្រាត (citrate), (D)-ជាតិទឹក (fluid), (E)-អុកសាឡាត (oxalate), (F)-ប្រូតេអ៊ីន (protein), (G)-សូដ្យូម (sodium), (H)-អ៊ុយរ៉ាត (urate).
+                </div>
+                <div class="fib-group p-3 rounded-lg group relative" data-group="stone-1">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo</button>
+                    <p>1. Low <span class="inline-block relative"><input type="text" data-ans="D" onblur="checkFIB(this)" class="input-blank" placeholder="1"><span class="ans-reveal hidden"></span></span> intake in a high ambient temperature,</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 mt-1">ការទទួលទាន (D) ជាតិទឹក (១) តិច ក្នុងសីតុណ្ហភាពបរិស្ថានខ្ពស់,</p>
+                </div>
+                <div class="fib-group p-3 rounded-lg group relative" data-group="stone-2">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo</button>
+                    <p>2. Low <span class="inline-block relative"><input type="text" data-ans="A" onblur="checkFIB(this)" class="input-blank" placeholder="2"><span class="ans-reveal hidden"></span></span> intake,</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 mt-1">ការទទួលទាន (A) កាល់ស្យូម (២) តិច,</p>
+                </div>
+                <div class="fib-group p-3 rounded-lg group relative" data-group="stone-3">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo</button>
+                    <p>3. High <span class="inline-block relative"><input type="text" data-ans="F" onblur="checkFIB(this)" class="input-blank" placeholder="3"><span class="ans-reveal hidden"></span></span> or <span class="inline-block relative"><input type="text" data-ans="G" onblur="checkFIB(this)" class="input-blank" placeholder="3'"><span class="ans-reveal hidden"></span></span> intake,</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 mt-1">ការទទួលទាន (F) ប្រូតេអ៊ីន (៣) ឬ (G) សូដ្យូម (៣') ខ្ពស់,</p>
+                </div>
+                <div class="fib-group p-3 rounded-lg group relative" data-group="stone-4">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo</button>
+                    <p>4. High <span class="inline-block relative"><input type="text" data-ans="E" onblur="checkFIB(this)" class="input-blank" placeholder="4"><span class="ans-reveal hidden"></span></span>, <span class="inline-block relative"><input type="text" data-ans="G" onblur="checkFIB(this)" class="input-blank" placeholder="4'"><span class="ans-reveal hidden"></span></span> or <span class="inline-block relative"><input type="text" data-ans="H" onblur="checkFIB(this)" class="input-blank" placeholder="4''"><span class="ans-reveal hidden"></span></span> excretion,</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 mt-1">ការបញ្ចេញ (E) អុកសាឡាត (៤), (G) សូដ្យូម (៤') ឬ (H) អ៊ុយរ៉ាត (៤") ខ្ពស់,</p>
+                </div>
+                <div class="fib-group p-3 rounded-lg group relative" data-group="stone-5">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo</button>
+                    <p>5. Low <span class="inline-block relative"><input type="text" data-ans="C" onblur="checkFIB(this)" class="input-blank" placeholder="5"><span class="ans-reveal hidden"></span></span> excretion,</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 mt-1">ការបញ្ចេញ (C) ស៊ីត្រាត (៥) ទាប,</p>
+                </div>
+                <div class="fib-group p-3 rounded-lg group relative" data-group="stone-6">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo</button>
+                    <p>6. Hyper-<span class="inline-block relative"><input type="text" data-ans="B" onblur="checkFIB(this)" class="input-blank" placeholder="6"><span class="ans-reveal hidden"></span></span> of any cause,</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 mt-1">ការឡើងខ្ពស់នៃ (B) កាល់ស្យូមក្នុងឈាម (៦) ពីមូលហេតុណាមួយ,</p>
+                </div>
+                <div class="fib-group p-3 rounded-lg group relative" data-group="stone-7">
+                    <button onclick="resetGroup(this)" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo</button>
+                    <p>7. Ileal disease or resection leads to increased <span class="inline-block relative"><input type="text" data-ans="E" onblur="checkFIB(this)" class="input-blank" placeholder="7"><span class="ans-reveal hidden"></span></span> absorption.</p>
+                    <p class="khmer-text khmer-hidden text-sm text-blue-600 mt-1">ការវះកាត់ពោះវៀនតូច (Ileal) នាំឱ្យមានការកើនឡើងនូវការស្រូបយក (E) អុកសាឡាត (៧)។</p>
+                </div>
+            </div>
+
+            <!-- Grading Section -->
+            <div id="result" class="result-box mt-10 p-6 bg-green-50 rounded-xl border-2 border-green-200 text-center">
+                <h3 class="text-2xl font-bold text-green-800 khmer-text">លទ្ធផលចុងក្រោយ (Final Score): <span id="score">0</span> / 37</h3>
+            </div>
+
+            <div class="mt-10 flex justify-center">
+                <button onclick="gradeQuiz(true)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-full shadow-lg transition transform active:scale-95 khmer-text">
+                    បញ្ជូន និងពិនិត្យពិន្ទុ (Finalize & Score)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const mcqs = [
+            { q: "Stress incontinence occurs due to:", qKh: "ការលេចនោមនៅពេលប្រឹង (Stress incontinence) កើតឡើងដោយសារ៖", a: 3, options: ["Bladder infection / ក. ការឆ្លងមេរោគប្លោកនោម", "Increased urine production / ខ. ការកើនឡើងនៃផលិតកម្មទឹកនោម", "Kidney failure / គ. ការខ្សោយតម្រងនោម", "Increased intra-abdominal pressure. / ឃ. ការកើនឡើងសម្ពាធក្នុងពោះ។"] },
+            { q: "Ureteric colic is most commonly caused by:", qKh: "ការឈឺរមួលបំពង់នោម (Ureteric colic) ជាទូទៅបំផុតបង្កឡើងដោយ៖", a: 1, options: ["Kidney infection / ក. ការឆ្លងមេរោគតម្រងនោម", "Acute obstruction by a stone. / ខ. ការស្ទះស្រួចស្រាវដោយសារគ្រួស។", "Bladder tumor / គ. ដុំសាច់ប្លោកនោម", "Diabetes. / ឃ. ជំងឺទឹកនោមផ្អែម។"] },
+            { q: "Enuresis refers to:", qKh: "Enuresis (ការលិចនោមដាក់នៅនឹងកន្លែង) សំដៅលើ៖", a: 3, options: ["Painful urination / ក. ការនោមឈឺ", "Reduced urine output / ខ. ការថយចុះបរិមាណទឹកនោម", "Blood in urine / គ. ឈាមក្នុងទឹកនោម", "Urinary incontinence at night. / ឃ. ការលេចនោមនៅពេលយប់។"] },
+            { q: "Hypertension is important in renal history because it:", qKh: "លើសសម្ពាធឈាមមានសារៈសំខាន់ក្នុងប្រវត្តិជំងឺតម្រងនោម ពីព្រោះវា៖", a: 1, options: ["Only affects the liver / ក. ប៉ះពាល់តែថ្លើមប៉ុណ្ោះ", "May cause or result from renal disease. / ខ. អាចបណ្តាលឱ្យមាន ឬជាលទ្ធផលនៃជំងឺតម្រងនោម។", "Never affects the kidneys / គ. មិនដែលប៉ះពាល់ដល់តម្រងនោមឡើយ", "Is unrelated to kidney function. / ឃ. មិនពាក់ព័ន្ធនឹងមុខងារតម្រងនោមឡើយ។"] },
+            { q: "Alport's syndrome is commonly associated with:", qKh: "រោគសញ្ញា Alport ជាធម្មតាផ្សារភ្ជាប់ជាមួយ៖", a: 0, options: ["Hearing loss. / ក. ការបាត់បង់ការស្តាប់។", "Blindness. / ខ. ភាពងងឹតភ្នែក។", "Heart failure / គ. ការខ្សោយបេះដូង", "Asthma / ឃ. ជំងឺហឺត"] },
+            { q: "Excess alcohol consumption may contribute to:", qKh: "ការទទួលទានគ្រឿងស្រវឹងច្រើនជ្រុលអាចរួមចំណែកដល់៖", a: 0, options: ["Hypertensive renal damage. / ក. ការខូចខាតតម្រងនោមដោយសារលើសសម្ពាធឈាម។", "Kidney enlargement only. / ខ. តែការរីកតម្រងនោមប៉ុណ្ោះ។", "Kidney stones only / គ. តែគ្រួសក្នុងតម្រងនោមប៉ុណ្ណោះ", "Urinary obstruction / ឃ. ការស្ទះផ្លូវទឹកនោម"] },
+            { q: "Crackles heard at lung bases in renal patients usually indicate:", qKh: "សំឡេងគ្រលែត (Crackles) ដែលឮនៅបាតសួតចំពោះអ្នកជំងឺតម្រងនោម ជាធម្មតាបញ្ជាក់ពី៖", a: 2, options: ["Asthma / ក. ជំងឺហឺត", "Pneumonia / ខ. ជំងឺរលាកសួត", "Fluid overload. / គ. ការលើសជាតិទឹកក្នុងរាងកាយ។", "Tuberculosis. / ឃ. ជំងឺរបេង។"] },
+            { q: "Bilateral kidney enlargement may occur in:", qKh: "ការរីកតម្រងនោមទាំងសងខាងអាចកើតមានក្នុងករណី៖", a: 1, options: ["Renal cancer / ក. មហារីកតម្រងនោម", "Polycystic kidney disease / ខ. ជំងឺពហុគីសតម្រងនោម", "Liver cirrhosis / គ. ក្រិនថ្លើម", "Peptic ulcer / ឃ. ដំបៅក្រពះ"] },
+            { q: "Cloudy fresh urine most commonly indicates the presence of:", qKh: "ទឹកនោមដែលទើបនោមថ្មីៗមានសភាពល្អក់ ជាធម្មតាបញ្ជាក់ពីវត្តមាននៃ៖", a: 2, options: ["Protein / ក. ប្រូតេអ៊ីន", "Glucose / ខ. ជាតិស្ករ", "Pus cells / គ. កោសិកាខ្ទុះ", "Ketones / ឃ. សារធាតុ Ketones"] },
+            { q: "Creatinine clearance provides an estimate of:", qKh: "ការជម្រះគ្រីអាទីនីន (Creatinine clearance) ផ្តល់នូវការប៉ាន់ប្រមាណនៃ៖", a: 2, options: ["Blood glucose / ក. ជាតិស្ករក្នុងឈាម", "Liver function / ខ. មុខងារថ្លើម", "Glomerular filtration rate / គ. អត្រាចម្រោះរបស់ជាតិទឹកក្នុងតម្រងនោម (GFR)", "Cardiac output / ឃ. បរិមាណឈាមដែលបេះដូងច្របាច់ចេញ"] },
+            { q: "Urge incontinence is associated with:", qKh: "ការលេចនោមដោយសារការចង់នោមខ្លាំង (Urge incontinence) ផ្សារភ្ជាប់ជាមួយ៖", a: 1, options: ["Weak pelvic floor muscles / ក. ភាពខ្សោយនៃសាច់ដុំបាតអាងត្រគាក", "Abnormal detrusor muscle function / ខ. ភាពមិនប្រក្រតីនៃមុខងារសាច់ដុំប្លោកនោម (detrusor)", "Reduced urine volume / គ. ការថយចុះបរិមាណទឹកនោម", "Kidney stones / ឃ. គ្រួសក្នុងតម្រងនោម"] },
+            { q: "Renal colic pain is typically:", qKh: "ការឈឺចាប់ដោយសារគ្រួសក្នុងតម្រងនោម (Renal colic) ជាធម្មតាមានលក្ខណៈ៖", a: 1, options: ["Mild and intermittent / ក. ស្រាល និងម្តងម្កាល", "Sudden, severe and sustained / ខ. ភ្លាមៗ ខ្លាំងក្លា និងជាប់រហូត", "Painless / គ. គ្មានការឈឺចាប់", "Only occurs at night / ឃ. កើតឡើងតែនៅពេលយប់ប៉ុណ្ោះ"] },
+            { q: "Which disease commonly causes diabetic nephropathy?", qKh: "តើជំងឺមួយណាដែលជាធម្មតាបណ្តាលឱ្យមានជំងឺតម្រងនោមបង្កដោយទឹកនោមផ្អែម?", a: 1, options: ["Hypertension / ក. លើសសម្ពាធឈាម", "Diabetes mellitus / ខ. ជំងឺទឹកនោមផ្អែម", "Asthma / គ. ជំងឺហឺត", "Tuberculosis / ឃ. ជំងឺរបេង"] },
+            { q: "Adult polycystic kidney disease is inherited as:", qKh: "ជំងឺពហុគីសតម្រងនោមចំពោះមនុស្សពេញវ័យត្រូវបានចម្លងតាមតំណពូជបែប៖", a: 0, options: ["Autosomal dominant / ក. Autosomal dominant", "Autosomal recessive / ខ. Autosomal recessive", "X-linked recessive / គ. លក្ខណៈអន់ពាក់ព័ន្ធនឹងក្រូម៉ូសូម X", "Sporadic / ឃ. កើតឡើងដោយឯកឯង (មិនទៀងទាត់)"] },
+            { q: "Uremic fetor refers to:", qKh: "Uremic fetor (ក្លិនដង្ហើមអ្នកជំងឺខ្សោយតម្រងនោម) សំដៅលើ៖", a: 2, options: ["Sweet smell of breath / ក. ដង្ហើមមានក្លិនផ្អែម", "Fishy breath odor / ខ. ដង្ហើមមានក្លិនឆ្អាបត្រី", "Urine-like smell on breath / គ. ដង្ហើមមានក្លិនដូចទឹកនោម", "Fruity smell of breath / ឃ. ដង្ហើមមានក្លិនដូចផ្លែឈើ"] },
+            { q: "Deep rapid breathing in renal failure is called:", qKh: "ការដកដង្ហើមជ្រៅ និងញាប់ក្នុងករណីខ្សោយតម្រងនោម ហៅថា៖", a: 1, options: ["Cheyne-Stokes respiration / ក. ដង្ហើម Cheyne-Stokes", "Kussmaul respiration / ខ. ដង្ហើម Kussmaul", "Biot respiration / គ. ដង្ហើម Biot", "Apneustic respiration / ឃ. ដង្ហើម Apneustic"] },
+            { q: "Gross bladder distension causes swelling in the:", qKh: "ការប៉ោងប្លោកនោមខ្លាំង បណ្តាលឱ្យមានការហើមនៅតំបន់៖", a: 2, options: ["Umbilical region / ក. តំបន់ផ្ចិត", "Right hypochondrium / ខ. តំបន់ក្រោមឆ្អឹងជំនីខាងស្តាំ", "Suprapubic region / គ. តំបន់លើឆ្អឹងថ្ងាស (Suprapubic)", "Epigastrium / ឃ. តំបន់ចុងដង្ហើម"] },
+            { q: "Polycystic kidneys usually have a:", qKh: "តម្រងនោមពហុគីសជាធម្មតាមាន៖", a: 3, options: ["Smooth surface / ក. ផ្ទៃរលោង", "Flat surface / ខ. ផ្ទៃរាបស្មើ", "Soft surface / គ. ផ្ទៃទន់", "Nodular irregular surface / ឃ. ផ្ទៃប៉ោងៗមិនស្មើគ្នា (Nodular)"] },
+            { q: "Specific gravity measures:", qKh: "Specific gravity (ដង់ស៊ីតេទឹកនោម) វាស់វែងនូវ៖", a: 1, options: ["Urine acidity / ក. កម្រិតអាស៊ីតនៃទឹកនោម", "Urine concentration / ខ. កំហាប់នៃទឹកនោម", "Glucose level / គ. កម្រិតជាតិស្ករ", "Protein level / ឃ. កម្រិតប្រូតេអ៊ីន"] },
+            { q: "Plasma creatinine level increases when:", qKh: "កម្រិតគ្រីអាទីនីនក្នុងប្លាស្មាកើនឡើងនៅពេល៖", a: 2, options: ["GFR increases / ក. GFR កើនឡើង", "Blood pressure decreases / ខ. សម្ពាធឈាមថយចុះ", "GFR decreases / គ. GFR ថយចុះ", "Urine pH increases / ឃ. កម្រិត pH ទឹកនោមកើនឡើង"] }
+        ];
+
+        let audioCtx = null;
+        function playTone(freq, type, duration) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        const playCorrect = () => playTone(880, 'sine', 0.3);
+        const playWrong = () => playTone(220, 'square', 0.3);
+
+        function initMCQs() {
+            const container = document.getElementById('mcq-container');
+            container.innerHTML = "";
+            mcqs.forEach((m, idx) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = 'mcq-wrapper p-4 border rounded-xl transition-all duration-300 relative group';
+                qDiv.id = `wrapper-q${idx}`;
+                qDiv.innerHTML = `
+                    <button onclick="resetMCQ(${idx})" class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 redo-btn">Redo Question</button>
+                    <p class="font-semibold text-lg text-gray-800 mb-1">${idx + 1}. ${m.q}</p>
+                    <p id="khmer-q-${idx}" class="khmer-text text-gray-600 mb-3 khmer-hidden">${m.qKh}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 options-grid" id="grid-q${idx}">
+                        ${m.options.map((opt, oIdx) => `
+                            <label class="flex items-center p-3 border rounded-lg hover:bg-blue-50 cursor-pointer transition relative group overflow-hidden">
+                                <input type="radio" name="q${idx}" value="${oIdx}" class="mr-3 w-4 h-4 text-blue-600 hidden" onchange="checkAnswer(${idx}, ${oIdx})">
+                                <span class="text-gray-800">${opt.split(' / ')[0]}</span>
+                                <span class="khmer-text text-xs text-blue-800 ml-2 khmer-hidden opacity-0 group-hover:opacity-100 transition-opacity translate-reveal">${opt.split(' / ')[1] || ''}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        function checkAnswer(qIdx, selectedIdx) {
+            const correctIdx = mcqs[qIdx].a;
+            const grid = document.getElementById(`grid-q${qIdx}`);
+            const wrapper = document.getElementById(`wrapper-q${qIdx}`);
+            const khmerQ = document.getElementById(`khmer-q-${qIdx}`);
+            const labels = grid.querySelectorAll('label');
+            
+            grid.classList.add('disabled-labels');
+            khmerQ.classList.add('khmer-visible');
+            grid.querySelectorAll('.translate-reveal').forEach(span => span.classList.add('khmer-visible'));
+
+            if (selectedIdx === correctIdx) {
+                labels[selectedIdx].classList.add('option-correct');
+                playCorrect();
+            } else {
+                labels[selectedIdx].classList.add('option-incorrect');
+                labels[correctIdx].classList.add('option-correct');
+                playWrong();
+            }
+            wrapper.classList.add('bg-gray-50', 'border-gray-300');
+        }
+
+        function resetMCQ(qIdx) {
+            const grid = document.getElementById(`grid-q${qIdx}`);
+            const wrapper = document.getElementById(`wrapper-q${qIdx}`);
+            const khmerQ = document.getElementById(`khmer-q-${qIdx}`);
+            const radios = grid.querySelectorAll('input[type="radio"]');
+            const labels = grid.querySelectorAll('label');
+            
+            radios.forEach(r => r.checked = false);
+            labels.forEach(l => l.classList.remove('option-correct', 'option-incorrect'));
+            grid.classList.remove('disabled-labels');
+            khmerQ.classList.remove('khmer-visible');
+            grid.querySelectorAll('.translate-reveal').forEach(span => span.classList.remove('khmer-visible'));
+            wrapper.classList.remove('bg-gray-50', 'border-gray-300');
+        }
+
+        function resetAllMCQs() {
+            mcqs.forEach((_, idx) => resetMCQ(idx));
+        }
+
+        function checkFIB(input) {
+            if (input.value.trim() === "") return;
+            const userVal = input.value.trim().toUpperCase();
+            const correctLetter = input.dataset.ans.toUpperCase();
+            const revealSpan = input.parentElement.querySelector('.ans-reveal');
+            const isCorrect = userVal === correctLetter || userVal === `(${correctLetter})`;
+            
+            input.classList.remove('correct', 'incorrect');
+            revealSpan.classList.add('hidden');
+
+            if (isCorrect) {
+                input.classList.add('correct');
+                playCorrect();
+            } else {
+                input.classList.add('incorrect');
+                revealSpan.textContent = `(${correctLetter})`;
+                revealSpan.classList.remove('hidden');
+                playWrong();
+            }
+            input.classList.add('disabled-input');
+
+            const group = input.closest('.fib-group');
+            if (group) {
+                const inputsInGroup = group.querySelectorAll('.input-blank');
+                let allFilled = true;
+                inputsInGroup.forEach(inp => {
+                    if (inp.value.trim() === "") allFilled = false;
+                });
+
+                if (allFilled) {
+                    const khmerText = group.querySelector('.khmer-hidden');
+                    if (khmerText) khmerText.classList.add('khmer-visible');
+                }
+            }
+        }
+
+        function resetGroup(btn) {
+            const group = btn.closest('.fib-group');
+            const inputs = group.querySelectorAll('.input-blank');
+            const reveals = group.querySelectorAll('.ans-reveal');
+            const khmerText = group.querySelector('.khmer-text');
+
+            inputs.forEach(input => {
+                input.value = "";
+                input.classList.remove('correct', 'incorrect', 'disabled-input');
+            });
+            reveals.forEach(rev => rev.classList.add('hidden'));
+            if (khmerText) khmerText.classList.remove('khmer-visible');
+        }
+
+        function resetAllFIBs(contextId) {
+            const context = document.getElementById(contextId);
+            const groups = context.querySelectorAll('.fib-group');
+            groups.forEach(group => {
+                const btn = group.querySelector('.redo-btn');
+                if (btn) resetGroup(btn);
+            });
+        }
+
+        function gradeQuiz(finalSubmit = false) {
+            let total = 0;
+            mcqs.forEach((m, idx) => {
+                const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+                if (selected && parseInt(selected.value) === m.a) total++;
+            });
+            document.querySelectorAll('.input-blank').forEach(b => {
+                const val = b.value.trim().toUpperCase();
+                const ans = b.dataset.ans.toUpperCase();
+                if (val === ans || val === `(${ans})`) total++;
+            });
+            if (finalSubmit) {
+                document.querySelectorAll('.khmer-hidden').forEach(el => el.classList.add('khmer-visible'));
+                document.getElementById('score').textContent = total;
+                document.getElementById('result').style.display = 'block';
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }
+        }
+
+        window.onload = initMCQs;
+    </script>
+</body>
+</html>
